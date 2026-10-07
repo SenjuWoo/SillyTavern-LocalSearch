@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ShugokiFable/SillyTavern-LocalSearch/actions/workflows/ci.yml"><img src="https://github.com/ShugokiFable/SillyTavern-LocalSearch/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/SenjuWoo/SillyTavern-LocalSearch/actions/workflows/ci.yml"><img src="https://github.com/SenjuWoo/SillyTavern-LocalSearch/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-53d7ff?labelColor=0d0f11" alt="MIT License"></a>
-  <a href="https://github.com/ShugokiFable/SillyTavern-LocalSearch/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-8f9aa6?labelColor=0d0f11" alt="v1.0.0"></a>
+  <a href="https://github.com/SenjuWoo/SillyTavern-LocalSearch/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-8f9aa6?labelColor=0d0f11" alt="v1.0.0"></a>
   <img src="https://img.shields.io/badge/python-3.x-8f9aa6?labelColor=0d0f11" alt="Python">
 </p>
 
@@ -70,7 +70,7 @@ copy of the settings back over the file, so anything changed underneath is lost.
 1. Download this repo (green **Code** button → **Download ZIP**, then unzip) or:
 
    ```bash
-   git clone https://github.com/ShugokiFable/SillyTavern-LocalSearch
+   git clone https://github.com/SenjuWoo/SillyTavern-LocalSearch
    ```
 
 2. Double-click **`UpdateAndStart.bat`**.
@@ -710,7 +710,7 @@ Verified in this tree:
 
 - CI runs `python test_local_search.py` (live local server: `#urls`, `client*.css` href, snippets, absolute links, `data-src` images, empty-query page)
 - Installer steps in `install.py` as listed above
-- Tagged GitHub release [v1.0.0](https://github.com/ShugokiFable/SillyTavern-LocalSearch/releases/tag/v1.0.0)
+- Tagged GitHub release [v1.0.0](https://github.com/SenjuWoo/SillyTavern-LocalSearch/releases/tag/v1.0.0)
 
 Not claimed:
 

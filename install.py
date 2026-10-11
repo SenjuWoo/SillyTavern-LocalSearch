@@ -2,7 +2,7 @@
 
 Does the five things that are otherwise five manual steps:
 
-  1. installs the one Python dependency (ddgs)
+  1. installs or updates the one Python dependency (ddgs)
   2. turns on server plugins in config.yaml
   3. links st-plugin into SillyTavern's plugins folder, so search starts and
      stops with SillyTavern
@@ -180,19 +180,23 @@ def step_update_sillytavern(st: Path, dry: bool) -> None:
 
 
 def step_dependency(dry: bool) -> None:
-    probe = subprocess.run([sys.executable, '-c', 'import ddgs'], capture_output=True)
-    if probe.returncode == 0:
-        say(OK, 'ddgs already installed')
-        return
+    # Always -U: ddgs tracks engines that change their pages, so an old copy silently returns nothing.
+    probe = subprocess.run([sys.executable, '-c', 'import ddgs; print(ddgs.__version__)'], capture_output=True, text=True)
+    before = probe.stdout.strip() if probe.returncode == 0 else ''
     if dry:
-        say(INFO, f'would run: {sys.executable} -m pip install ddgs')
+        say(INFO, f'would run: {sys.executable} -m pip install -U ddgs' + (f' (have {before})' if before else ''))
         return
-    say(INFO, 'installing ddgs...')
-    result = subprocess.run([sys.executable, '-m', 'pip', 'install', 'ddgs'])
+    say(INFO, 'installing/updating ddgs...')
+    result = subprocess.run([sys.executable, '-m', 'pip', 'install', '-U', '-q', '--disable-pip-version-check', 'ddgs'])
     if result.returncode != 0:
+        if before:
+            say(INFO, f'could not update ddgs; keeping {before}')
+            return
         die('pip install ddgs failed. Install it yourself, then re-run.')
-    say(OK, 'ddgs installed')
-    changed.append('installed ddgs')
+    after = subprocess.run([sys.executable, '-c', 'import ddgs; print(ddgs.__version__)'], capture_output=True, text=True).stdout.strip()
+    say(OK, f'ddgs {after}' + ('' if after == before else f' (was {before or "not installed"})'))
+    if after != before:
+        changed.append(f'ddgs {after}')
 
 
 def step_enable_plugins(config: Path, dry: bool) -> None:

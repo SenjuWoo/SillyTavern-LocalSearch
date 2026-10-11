@@ -3,6 +3,7 @@
 // Install once (junction, so edits in the repo take effect with no copy step):
 //   mklink /J "<SillyTavern>\plugins\local-search" "<this repo>\st-plugin"
 // Requires enableServerPlugins: true in SillyTavern's config.yaml.
+// Extra local_search.py options go in LOCAL_SEARCH_ARGS, e.g. LOCAL_SEARCH_ARGS="--safesearch off --region uk-en".
 
 import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -10,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const PORT = Number(process.env.LOCAL_SEARCH_PORT) || 18888;
 const HOST = process.env.LOCAL_SEARCH_HOST || '127.0.0.1';
+const EXTRA_ARGS = (process.env.LOCAL_SEARCH_ARGS || '').split(/s+/).filter(Boolean);
 // ../local_search.py — import.meta resolves through the junction to the real repo path.
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'local_search.py');
 
@@ -33,11 +35,13 @@ async function alreadyRunning() {
     }
 }
 
-/** First interpreter that can import ddgs, or null. */
+/** Real path of the first interpreter that can import ddgs, or null. Spawning it directly
+ *  (not through the py launcher) means exit() kills the process that owns the port. */
 function findPython() {
     for (const [cmd, pre] of [['py', ['-3']], ['python', []], ['python3', []]]) {
-        const probe = spawnSync(cmd, [...pre, '-c', 'import ddgs'], { windowsHide: true, timeout: 20000 });
-        if (probe.status === 0) return [cmd, pre];
+        const probe = spawnSync(cmd, [...pre, '-c', 'import ddgs, sys; print(sys.executable)'], { windowsHide: true, timeout: 20000, encoding: 'utf8' });
+        const exe = probe.status === 0 ? probe.stdout.trim() : '';
+        if (exe) return exe;
     }
     return null;
 }
@@ -50,12 +54,11 @@ export async function init() {
 
     const python = findPython();
     if (!python) {
-        console.error('[local-search] no Python with the "ddgs" package found. Run: py -3 -m pip install ddgs');
+        console.error('[local-search] no Python with the "ddgs" package found. Run: py -3 -m pip install -U ddgs');
         return;
     }
 
-    const [cmd, pre] = python;
-    child = spawn(cmd, [...pre, SCRIPT, '--host', HOST, '--port', String(PORT)], {
+    child = spawn(python, [SCRIPT, '--host', HOST, '--port', String(PORT), ...EXTRA_ARGS], {
         cwd: path.dirname(SCRIPT),
         windowsHide: true,
         stdio: ['ignore', 'ignore', 'pipe'],

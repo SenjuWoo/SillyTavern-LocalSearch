@@ -14,8 +14,8 @@
 <p align="center">
   <a href="https://github.com/SenjuWoo/SillyTavern-LocalSearch/actions/workflows/ci.yml"><img src="https://github.com/SenjuWoo/SillyTavern-LocalSearch/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-53d7ff?labelColor=0d0f11" alt="MIT License"></a>
-  <a href="https://github.com/SenjuWoo/SillyTavern-LocalSearch/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-8f9aa6?labelColor=0d0f11" alt="v1.0.0"></a>
-  <img src="https://img.shields.io/badge/python-3.x-8f9aa6?labelColor=0d0f11" alt="Python">
+  <a href="https://github.com/SenjuWoo/SillyTavern-LocalSearch/releases/tag/v1.1.0"><img src="https://img.shields.io/badge/release-v1.1.0-8f9aa6?labelColor=0d0f11" alt="v1.1.0"></a>
+  <img src="https://img.shields.io/badge/python-3.10%2B-8f9aa6?labelColor=0d0f11" alt="Python 3.10+">
 </p>
 
 <p align="center">
@@ -55,11 +55,12 @@ Nothing leaves the machine except the search query. Loopback only — do not bin
 ## Project map
 
 ```text
-local_search.py       DuckDuckGo → SearXNG-shaped HTML on 127.0.0.1:18888
+local_search.py       ddgs metasearch → SearXNG-shaped HTML on 127.0.0.1:18888
 st-plugin/            SillyTavern server plugin (junction target)
 install.py            one-shot installer
 UpdateAndStart.bat    pull + re-assert + start
-test_local_search.py  live HTML-contract tests
+test_local_search.py  HTML-contract tests (offline fake engine; --live hits real engines)
+CHANGELOG.md          release notes
 ```
 
 ## Install
@@ -304,7 +305,7 @@ container.
 `Install.bat` does all of this. If you would rather not run it:
 
 ```bash
-python -m pip install ddgs
+python -m pip install -U ddgs
 ```
 
 Run `Start-LocalSearch.bat` (or `python local_search.py`) and leave it open.
@@ -346,7 +347,28 @@ copy. If no Python on `PATH` can `import ddgs` it says so and starts nothing,
 instead of failing silently at the first search.
 
 Override the defaults with the `LOCAL_SEARCH_PORT` / `LOCAL_SEARCH_HOST`
-environment variables if `18888` is taken.
+environment variables if `18888` is taken, and pass any option below through
+`LOCAL_SEARCH_ARGS` (for example `LOCAL_SEARCH_ARGS=--safesearch off --region uk-en`).
+
+### Options
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `--safesearch on/moderate/off` | `moderate` | Engine-side filtering. `off` for unfiltered results |
+| `--region` | `us-en` | Result locale, e.g. `uk-en`, `de-de`, `wt-wt` (none) |
+| `--timelimit d/w/m/y` | any | Only results from the last day / week / month / year |
+| `--backend` | `auto` | ddgs engines: `auto` spreads text searches over Brave, DuckDuckGo, Google, Mojeek, Startpage, Wikipedia, Yahoo… (images: Bing, DuckDuckGo); or name them, e.g. `duckduckgo` or `brave,wikipedia` |
+| `--max-results` | `10` | Results per search |
+| `--cache-ttl` | `600` | Seconds an identical search is answered from memory (swipes and regenerates repeat the query). `0` = off. Empty answers are never cached |
+| `--timeout` | `10` | Per-engine request timeout, seconds |
+| `--verbose` | off | One log line per request and cache hit |
+
+### Log
+
+Quiet by default: the version, the resolved options and every failure (with
+its cause) go to stderr — the `Start-LocalSearch.bat` window, or SillyTavern's
+console prefixed `[local-search]` when the plugin runs it. Add `--verbose` for
+per-request lines.
 
 ```bash
 node st-plugin/selfcheck.mjs   # start -> real search -> stop -> port released
@@ -380,17 +402,23 @@ SillyTavern's server also GETs the base URL before searching and, if the page
 links a `/client*.css`, fetches that too. Both are answered, so the request
 flow matches a real instance rather than relying on a lucky shortcut.
 
-`test_local_search.py` asserts that contract against a live instance of the
-server. Run it after changing anything:
+`test_local_search.py` asserts that contract the way the extension parses it,
+offline against a fake engine (escaping, relative-link and non-http image
+filtering, option pass-through, caching, upstream failure), and with `--live`
+against the real engines. Run it after changing anything:
 
 ```bash
-python test_local_search.py
+python test_local_search.py          # offline, deterministic
+python test_local_search.py --live   # plus the real engines
 ```
 
 ### Limits worth knowing
 
-- **It is DuckDuckGo.** Result quality and rate limits are theirs. A burst of
-  searches can start returning nothing; wait a minute.
+- **It is public search engines.** Result quality and rate limits are theirs
+  (`ddgs` spreads queries across several). A burst can start returning nothing;
+  wait a minute. Identical searches within 10 minutes come from the cache.
+- **Keep `ddgs` current.** Engines change their pages; `Install.bat` /
+  `install.py` always runs `pip install -U ddgs`.
 - **Snippets only, by default.** SillyTavern's *Visit* option fetches the linked
   pages for real content. It is off by default because it costs several seconds
   per message. Turn it on in the extension panel if snippets are too thin.
@@ -708,13 +736,14 @@ is fine for SillyTavern and a non-starter there.
 
 Verified in this tree:
 
-- CI runs `python test_local_search.py` (live local server: `#urls`, `client*.css` href, snippets, absolute links, `data-src` images, empty-query page)
+- CI (Python 3.10 and 3.13) runs `python test_local_search.py` offline: `#urls`, `client*.css` href, snippets, absolute links, `data-src` images, empty-query page, escaping, options, cache, upstream failure. The `--live` run against real engines is informational there, because engines rate-limit CI runners
+- `node st-plugin/selfcheck.mjs`: plugin start → real search → stop → port released
 - Installer steps in `install.py` as listed above
-- Tagged GitHub release [v1.0.0](https://github.com/SenjuWoo/SillyTavern-LocalSearch/releases/tag/v1.0.0)
+- Tagged GitHub release [v1.1.0](https://github.com/SenjuWoo/SillyTavern-LocalSearch/releases/tag/v1.1.0)
 
 Not claimed:
 
-- That DuckDuckGo will never rate-limit (bursts degrade to empty results, not a crash)
+- That the engines will never rate-limit (bursts degrade to empty results, not a crash)
 - That `reasoning_effort` / `/no_think` can turn off a reasoning model through the OpenAI-compatible API (measured: they cannot)
 - A hosted SearXNG of our own
 - Changes to your presets, characters, chats, lorebooks, or other third-party extensions

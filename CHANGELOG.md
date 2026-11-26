@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 — 2026-11-26
+
+- Fix: the server plugin split `LOCAL_SEARCH_ARGS` on the letter `s` instead of on whitespace, so `--safesearch off --region uk-en` reached `local_search.py` as `--`, `afe`, `earch off --region uk-en` and every extra option was lost. It now splits on whitespace (`splitArgs`, exported for the test).
+- New offline check `node st-plugin/argscheck.mjs`, run in CI.
+- README rebuilt around install, options and proof images; the measured deep dives moved unchanged into `docs/` (what the installer changes, free web search, LM Studio, run-time costs, Vectors and Connection Profiles).
+
 ## 1.1.0 — 2026-10-11
 
 - One shared ddgs client instead of a new one per search (engine sessions stay warm).

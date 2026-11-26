@@ -32,7 +32,10 @@ jobs:
         run: |
           node --check st-plugin/index.mjs
           node --check st-plugin/selfcheck.mjs
+          node --check st-plugin/argscheck.mjs
           python -m py_compile install.py local_search.py
+      - name: Plugin argument parsing (offline)
+        run: node st-plugin/argscheck.mjs
       - name: Contract tests (offline, deterministic)
         run: python test_local_search.py
       - name: Contract tests against the real engines (informational; engines rate-limit CI runners)

@@ -47,7 +47,7 @@ try:
 except ImportError:  # pragma: no cover - the message is the whole point
     sys.exit("ddgs is not installed. Run:  python -m pip install -U ddgs")
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 log = logging.getLogger("local-search")
 
 PAGE = """<!doctype html>

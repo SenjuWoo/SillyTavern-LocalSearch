@@ -11,7 +11,11 @@ import { fileURLToPath } from 'node:url';
 
 const PORT = Number(process.env.LOCAL_SEARCH_PORT) || 18888;
 const HOST = process.env.LOCAL_SEARCH_HOST || '127.0.0.1';
-const EXTRA_ARGS = (process.env.LOCAL_SEARCH_ARGS || '').split(/s+/).filter(Boolean);
+/** LOCAL_SEARCH_ARGS -> argv. Plain whitespace split: no option value needs a space. */
+export function splitArgs(value) {
+    return String(value ?? '').split(/\s+/).filter(Boolean);
+}
+const EXTRA_ARGS = splitArgs(process.env.LOCAL_SEARCH_ARGS);
 // ../local_search.py — import.meta resolves through the junction to the real repo path.
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'local_search.py');
 

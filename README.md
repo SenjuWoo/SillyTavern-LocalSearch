@@ -159,7 +159,7 @@ flowchart LR
   CHAT["chat message, query in backticks"] --> WS["Web Search extension (source: SearXNG)"]
   WS -->|"GET / then /search?q="| LS["local_search.py on 127.0.0.1:18888"]
   LS -->|"ddgs metasearch"| ENG["public engines"]
-  LS -->|"#urls p.content, .url_wrapper, img[data-src]"| WS
+  LS -->|"SearXNG-shaped HTML"| WS
   ST["SillyTavern start / stop"] -->|"server plugin"| LS
 ```
 

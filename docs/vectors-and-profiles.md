@@ -74,5 +74,5 @@ replays those fields as slash commands in a fixed order and skips any that are
 empty, so a partial profile is fine.
 
 Because the profile sets **both** the preset and the post-processing, it is also
-the durable answer to the trap above: pick the profile and the pair can no
+the durable answer to [the preset trap](lm-studio.md#the-preset-silently-puts-the-crash-back): pick the profile and the pair can no
 longer drift apart.
